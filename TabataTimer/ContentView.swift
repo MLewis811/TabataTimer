@@ -71,6 +71,8 @@ struct PanelButton: View {
 
 struct ContentView: View {
     @StateObject private var model = TabataModel()
+    
+    @State private var showingSettings = false
 
     private let gap: CGFloat = 24
 
@@ -165,12 +167,27 @@ struct ContentView: View {
 
             HStack(spacing: gap) {
                 PanelButton(label: "-", isEnabled: !model.isRunning) { model.adjust(-1) }
+                Button {
+                    showingSettings.toggle()
+                } label: {
+                    Image(systemName: "gear")
+                        .resizable()
+                        .scaledToFit()
+                        .padding(13)
+                        .foregroundStyle(.white)
+                        .background(.gray)
+                        .clipShape(Circle())
+                        .padding(.vertical, 17)
+                }
+                .sheet(isPresented: $showingSettings) {
+                    SettingsModal()
+                }
                 PanelButton(label: "+", isEnabled: !model.isRunning) { model.adjust(+1) }
+
             }
             .frame(height: 90)
 
-            Button("Settings") {
-            }
+
 
             if model.isRunning {
                 SlideToStopSlider {

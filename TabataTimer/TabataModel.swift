@@ -80,7 +80,7 @@ final class TabataModel: ObservableObject {
         whistle.play()
     }
 
-    private let timeStep = 5
+    private let timeStep = 1
     private let maxTime = 99 * 60 + 55
     private let maxCount = 99
 
