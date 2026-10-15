@@ -180,7 +180,7 @@ struct ContentView: View {
                         .padding(.vertical, 17)
                 }
                 .sheet(isPresented: $showingSettings) {
-                    SettingsModal()
+                    SettingsModal(chosenVoice: $model.voice)
                 }
                 PanelButton(label: "+", isEnabled: !model.isRunning) { model.adjust(+1) }
 

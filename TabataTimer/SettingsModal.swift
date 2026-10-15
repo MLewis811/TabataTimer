@@ -8,43 +8,65 @@
 import SwiftUI
 import AVFoundation
 
-struct SettingsModal: View {
-    @Environment(\.dismiss) var dismiss
-    
-    @State private var selection: AVSpeechSynthesisVoice?
-    
+final class VoiceTester {
     private let synth = AVSpeechSynthesizer()
-    private let allVoices = AVSpeechSynthesisVoice.speechVoices()
-    
-    var body: some View {
-        List(allVoices, id: \.self, selection: $selection) { voice in
-            Text(voice.name)
-//                .tag(voice as AVSpeechSynthesisVoice?)
-                .onTapGesture {
-                    selection = voice
-                    speakTestWord(using: voice)
-                }
-        }
-        
-        Button("Press to dismiss") {
-            dismiss()
-        }
-        .font(.title)
-        .padding()
-        .foregroundStyle(.white)
-        .background(.black)
-    }
-    
-    private func speakTestWord(using voice: AVSpeechSynthesisVoice) {
-        let utterance = AVSpeechUtterance(string: "Work")
+
+    func speak(_ text: String, using voice: AVSpeechSynthesisVoice) {
+        let utterance = AVSpeechUtterance(string: text)
         utterance.voice = voice
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
-        
+
         synth.stopSpeaking(at: .immediate)
         synth.speak(utterance)
     }
 }
 
-#Preview {
-    SettingsModal()
+struct SettingsModal: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var chosenVoice: AVSpeechSynthesisVoice?
+    @State private var selection: AVSpeechSynthesisVoice?
+    @State private var tester = VoiceTester()
+
+    private static let voices = AVSpeechSynthesisVoice.speechVoices()
+        .filter { $0.language == "en-US" }
+
+    init(chosenVoice: Binding<AVSpeechSynthesisVoice?>) {
+        _chosenVoice = chosenVoice
+        _selection = State(initialValue: chosenVoice.wrappedValue)
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button("Cancel") { dismiss() }
+                    .font(.title)
+                    .padding()
+                Spacer()
+                Button("Accept") {
+                    chosenVoice = selection
+                    dismiss()
+                }
+                    .font(.title)
+                    .padding()
+                    .disabled(selection == nil)
+            }
+            
+            List(Self.voices, id: \.self, selection: $selection) { voice in
+                Text("\(voice.name) - \(voice.language)")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .tag(voice as AVSpeechSynthesisVoice?)
+                    .onTapGesture {
+                        selection = voice
+                        tester.speak("Work", using: voice)
+                    }
+            }
+
+
+        }
+    }
 }
+
+//#Preview {
+//    SettingsModal(chosenVoice: <#T##Binding<AVSpeechSynthesisVoice?>#>)
+//}

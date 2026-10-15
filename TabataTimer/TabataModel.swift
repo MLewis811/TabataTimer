@@ -60,18 +60,19 @@ final class TabataModel: ObservableObject {
     @Published private(set) var isRunning = false
     @Published private(set) var isFinished = false
 
+    @Published var voice: AVSpeechSynthesisVoice?
     private var ticker: Task<Void, Never>?
     private var whistle: AVAudioPlayer?
 
     init() {
-        if let url = Bundle.main.url(forResource: "whistle", withExtension: "wav") {
-            whistle = try? AVAudioPlayer(contentsOf: url)
-            whistle?.prepareToPlay()
-        }
+//        if let url = Bundle.main.url(forResource: "whistle", withExtension: "wav") {
+//            whistle = try? AVAudioPlayer(contentsOf: url)
+//            whistle?.prepareToPlay()
+//        }
         // .playback lets the sound play even when the mute switch/setting is on;
         // .mixWithOthers avoids interrupting music the user may be playing.
-        try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
-        try? AVAudioSession.sharedInstance().setActive(true)
+//        try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+//        try? AVAudioSession.sharedInstance().setActive(true)
     }
 
     private func playWhistle() {
@@ -180,6 +181,8 @@ final class TabataModel: ObservableObject {
         elapsed = 0
         isFinished = false
     }
+    
+    private let synth = AVSpeechSynthesizer()
 
     private func tick(since startDate: Date) {
         let newElapsed = Int(Date().timeIntervalSince(startDate))
@@ -191,10 +194,9 @@ final class TabataModel: ObservableObject {
         if newElapsed >= totalSeconds {
             finish()
         } else if position(at: newElapsed) != oldPosition {
-            let synth = AVSpeechSynthesizer()
             let speakIt = AVSpeechUtterance(string: self.currentPosition?.phase.speak ?? "")
             speakIt.rate = 0.3
-            speakIt.voice = AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.Ralph")
+            speakIt.voice = voice
             synth.speak(speakIt)
         }
     }
@@ -206,6 +208,6 @@ final class TabataModel: ObservableObject {
         isRunning = false
         isFinished = true
         UIApplication.shared.isIdleTimerDisabled = false
-        playWhistle()   // workout complete
+//        playWhistle()   // workout complete
     }
 }
