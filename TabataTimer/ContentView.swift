@@ -107,7 +107,7 @@ struct ContentView: View {
                      color: .purple,
                      valueSize: 90,
                      isSelected: model.selected == .cycles,
-                     selectedBorderColor: .black)
+                     selectedBorderColor: .primary)
                     .onTapGesture { model.select(.cycles) }
 
                 Tile(title: "TABATAS",
@@ -115,7 +115,7 @@ struct ContentView: View {
                      color: .pink,
                      valueSize: 90,
                      isSelected: model.selected == .tabatas,
-                     selectedBorderColor: .black)
+                     selectedBorderColor: .primary)
                     .onTapGesture { model.select(.tabatas) }
             }
             .frame(height: 220)
@@ -145,7 +145,7 @@ struct ContentView: View {
                  value: TabataModel.format(model.prepare),
                  color: Phase.prepare.color,
                  isSelected: model.selected == .prepare,
-                 selectedBorderColor: .black)
+                 selectedBorderColor: .primary)
                 .onTapGesture { model.select(.prepare) }
                 .frame(maxHeight: .infinity)
 
@@ -153,7 +153,7 @@ struct ContentView: View {
                  value: TabataModel.format(model.work),
                  color: Phase.work.color,
                  isSelected: model.selected == .work,
-                 selectedBorderColor: .black)
+                 selectedBorderColor: .primary)
                 .onTapGesture { model.select(.work) }
                 .frame(maxHeight: .infinity)
 
@@ -161,7 +161,7 @@ struct ContentView: View {
                  value: TabataModel.format(model.rest),
                  color: Phase.rest.color,
                  isSelected: model.selected == .rest,
-                 selectedBorderColor: .black)
+                 selectedBorderColor: .primary)
                 .onTapGesture { model.select(.rest) }
                 .frame(maxHeight: .infinity)
 

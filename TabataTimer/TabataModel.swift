@@ -130,12 +130,12 @@ final class TabataModel: ObservableObject {
         return player
     }
     
-    init() {
+//    init() {
 //        if let url = Bundle.main.url(forResource: "whistle", withExtension: "wav") {
 //            whistle = try? AVAudioPlayer(contentsOf: url)
 //            whistle?.prepareToPlay()
 //        }
-    }
+//    }
 
 //    private func playWhistle() {
 //        activateAudioSessionIfNeeded { [weak self] in

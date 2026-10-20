@@ -47,6 +47,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "000000000000000100000000"
             BuildableName = "TabataTimer.app"
+            BlueprintName = "TabataTimer"
             ReferencedContainer = "container:TabataTimer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
