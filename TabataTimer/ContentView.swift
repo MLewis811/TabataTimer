@@ -115,7 +115,7 @@ struct ContentView: View {
                      color: .pink,
                      valueSize: 90,
                      isSelected: model.selected == .tabatas,
-                     selectedBorderColor: .pink)
+                     selectedBorderColor: .black)
                     .onTapGesture { model.select(.tabatas) }
             }
             .frame(height: 220)
@@ -145,7 +145,7 @@ struct ContentView: View {
                  value: TabataModel.format(model.prepare),
                  color: Phase.prepare.color,
                  isSelected: model.selected == .prepare,
-                 selectedBorderColor: Phase.prepare.color)
+                 selectedBorderColor: .black)
                 .onTapGesture { model.select(.prepare) }
                 .frame(maxHeight: .infinity)
 
@@ -153,7 +153,7 @@ struct ContentView: View {
                  value: TabataModel.format(model.work),
                  color: Phase.work.color,
                  isSelected: model.selected == .work,
-                 selectedBorderColor: Phase.work.color)
+                 selectedBorderColor: .black)
                 .onTapGesture { model.select(.work) }
                 .frame(maxHeight: .infinity)
 
@@ -161,7 +161,7 @@ struct ContentView: View {
                  value: TabataModel.format(model.rest),
                  color: Phase.rest.color,
                  isSelected: model.selected == .rest,
-                 selectedBorderColor: Phase.rest.color)
+                 selectedBorderColor: .black)
                 .onTapGesture { model.select(.rest) }
                 .frame(maxHeight: .infinity)
 
@@ -179,6 +179,8 @@ struct ContentView: View {
                         .clipShape(Circle())
                         .padding(.vertical, 17)
                 }
+                .opacity(model.isRunning ? 0.1 : 1.0 )
+                .disabled(model.isRunning)
                 .sheet(isPresented: $showingSettings) {
                     SettingsModal(chosenVoice: $model.voice)
                 }
@@ -216,7 +218,7 @@ struct SlideToStopSlider: View {
     var onStop: () -> Void
     @State private var offset: CGFloat = 0
     @GestureState private var isDragging = false
-    let sliderWidth: CGFloat = 320
+    let sliderWidth: CGFloat = 360
     let sliderHeight: CGFloat = 68
     let knobWidth: CGFloat = 68
 
@@ -233,6 +235,7 @@ struct SlideToStopSlider: View {
                 .opacity(offset < sliderWidth - knobWidth ? 1 : 0)
             RoundedRectangle(cornerRadius: knobWidth / 2, style: .continuous)
                 .fill(Color.red)
+                .opacity(0.8)
                 .frame(width: knobWidth, height: knobWidth)
                 .overlay(Image(systemName: "power"), alignment: .center)
                 .foregroundColor(.white)

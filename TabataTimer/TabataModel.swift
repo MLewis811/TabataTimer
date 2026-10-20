@@ -64,22 +64,86 @@ final class TabataModel: ObservableObject {
     private var ticker: Task<Void, Never>?
     private var whistle: AVAudioPlayer?
 
+    private let synth = AVSpeechSynthesizer()
+    
+    private func speak(_ text: String) {
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.rate = 0.3
+        utterance.voice = voice ?? AVSpeechSynthesisVoice(language: "en-US")
+        
+        synth.stopSpeaking(at: .immediate)
+        synth.speak(utterance)
+    }
+    
+    private func prewarmSpeech() {
+        let utterance = AVSpeechUtterance(string: " ")
+        utterance.voice = voice ?? AVSpeechSynthesisVoice(language: "en-US")
+        utterance.volume = 0
+        
+        synth.speak(utterance)
+    }
+    
+    private lazy var beepPlayer: AVAudioPlayer? = Self.makeBeepPlayer()
+    
+    private func playBeep() {
+            self.beepPlayer?.currentTime = 0
+            self.beepPlayer?.play()
+    }
+    
+    /// 1...3 if the position changes within the next three seconds, otherwise nil.
+    private func secondsUntilChange(from t: Int) -> Int? {
+        let current = position(at: t)
+        for k in 1...3 where position(at: t + k) != current {
+            return k   // also true when t + k is past the end (position is nil)
+        }
+        return nil
+    }
+    
+    private static func makeBeepPlayer() -> AVAudioPlayer? {
+        let sampleRate = 44100
+        let frequency = 880.0
+        let count = sampleRate * 15 / 100
+        let fadeSamples = Double(sampleRate) / 100
+        
+        var data = Data()
+        func put<T: FixedWidthInteger>(_ value: T) {
+            var v = value.littleEndian
+            withUnsafeBytes(of: &v) { data.append(contentsOf: $0) }
+        }
+        
+        let dataSize = UInt32(count * 2)
+        
+        data.append(contentsOf: Array("RIFF".utf8)); put(36 + dataSize)
+        data.append(contentsOf: Array("WAVE".utf8))
+        data.append(contentsOf: Array("fmt ".utf8)); put(UInt32(16)); put(UInt16(1)); put(UInt16(1))
+        put(UInt32(sampleRate)); put(UInt32(sampleRate * 2)); put(UInt16(2)); put(UInt16(16))
+        data.append(contentsOf: Array("data".utf8)); put(dataSize)
+
+        for i in 0..<count {
+            let envelope = min(1.0, Double(min(i, count - i)) / fadeSamples)
+            let wave = sin(2 * .pi * frequency * Double(i) / Double(sampleRate))
+            put(Int16(wave * envelope * 0.6 * Double(Int16.max)))
+        }
+
+        let player = try? AVAudioPlayer(data: data)
+        player?.prepareToPlay()
+        return player
+    }
+    
     init() {
 //        if let url = Bundle.main.url(forResource: "whistle", withExtension: "wav") {
 //            whistle = try? AVAudioPlayer(contentsOf: url)
 //            whistle?.prepareToPlay()
 //        }
-        // .playback lets the sound play even when the mute switch/setting is on;
-        // .mixWithOthers avoids interrupting music the user may be playing.
-//        try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
-//        try? AVAudioSession.sharedInstance().setActive(true)
     }
 
-    private func playWhistle() {
-        guard let whistle else { return }
-        whistle.currentTime = 0   // restart if it's still playing from the last phase change
-        whistle.play()
-    }
+//    private func playWhistle() {
+//        activateAudioSessionIfNeeded { [weak self] in
+//            guard let self = self, let whistle = self.whistle else { return }
+//            whistle.currentTime = 0   // restart if it's still playing from the last phase change
+//            whistle.play()
+//        }
+//    }
 
     private let timeStep = 1
     private let maxTime = 99 * 60 + 55
@@ -158,6 +222,7 @@ final class TabataModel: ObservableObject {
         resetRun()
         isRunning = true
         UIApplication.shared.isIdleTimerDisabled = true
+        prewarmSpeech()
 
         let startDate = Date()
         ticker = Task { [weak self] in
@@ -182,7 +247,6 @@ final class TabataModel: ObservableObject {
         isFinished = false
     }
     
-    private let synth = AVSpeechSynthesizer()
 
     private func tick(since startDate: Date) {
         let newElapsed = Int(Date().timeIntervalSince(startDate))
@@ -194,10 +258,9 @@ final class TabataModel: ObservableObject {
         if newElapsed >= totalSeconds {
             finish()
         } else if position(at: newElapsed) != oldPosition {
-            let speakIt = AVSpeechUtterance(string: self.currentPosition?.phase.speak ?? "")
-            speakIt.rate = 0.3
-            speakIt.voice = voice
-            synth.speak(speakIt)
+            speak(position(at: newElapsed)?.phase.speak ?? "")
+        } else if secondsUntilChange(from: newElapsed) != nil {
+            playBeep()
         }
     }
 
@@ -211,3 +274,4 @@ final class TabataModel: ObservableObject {
 //        playWhistle()   // workout complete
     }
 }
+
